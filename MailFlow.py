@@ -1,4 +1,4 @@
-from AppKit import NSApplication, NSMenuItem
+from AppKit import NSAlternateKeyMask, NSApplication, NSMenuItem
 import objc
 import re
 
@@ -123,8 +123,9 @@ class MCMessageGenerator(objc.Category(objc.runtime.MCMessageGenerator)):
     @swizzle(objc.runtime.MCMessageGenerator,
              '_newPlainTextPartWithAttributedString:partData:')
     def _newPlainTextPartWithAttributedString_partData_(self, old, *args):
+        event = NSApplication.sharedApplication().currentEvent()
         result = old(self, *args)
-        if not MailFlow.enabled.state():
+        if event and event.modifierFlags() & NSAlternateKeyMask:
             return result
 
         charset = result.bodyParameterForKey_('charset') or 'utf-8'
@@ -159,14 +160,4 @@ class SingleMessageViewer(objc.Category(objc.runtime.SingleMessageViewer)):
 class MailFlow(objc.runtime.MVMailBundle):
     @classmethod
     def initialize(self):
-        application = NSApplication.sharedApplication()
-        formatmenu = application.mainMenu().itemAtIndex_(6).submenu()
-        self.enabled = formatmenu.addItemWithTitle_action_keyEquivalent_(
-            'Flow Text', 'toggle:', '')
-        self.enabled.setState_(True)
-        self.enabled.setTarget_(self)
         self.registerBundle()
-
-    @classmethod
-    def toggle_(self, sender):
-        self.enabled.setState_(1 - self.enabled.state())

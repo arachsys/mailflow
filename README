@@ -85,10 +85,10 @@ content such as quotes, code samples, aligned columns or ASCII art whilst
 composing a plain text message.
 
 Flowed format is not appropriate for some messages, such as those containing
-inline patches. Thus the use of format=flowed can be toggled in the Format
-menu using the 'Flow Text' item. This is a global setting applied to all
-sent messages rather than a property of an individual compose window, so it
-is best only disabled briefly while dispatching a fixed-format message.
+inline patches. To disable the use of flowed text for an individual message,
+hold down the Option key whilst clicking on the Send button in the toolbar,
+or while selecting Send from the Message menu. MailFlow will still prevent
+unnecessary use of quoted-printable even when format=flowed is disabled.
 
 By default, Mail uses a quoted-printable transfer encoding for text/plain
 parts whenever they contain non-ASCII characters or a line longer than 77
