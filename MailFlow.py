@@ -142,18 +142,27 @@ class MCMessageGenerator(objc.Category(objc.runtime.MCMessageGenerator)):
 class MessageViewController(objc.Category(objc.runtime.MessageViewController)):
     @swizzle(objc.runtime.MessageViewController, 'forward:')
     def forward_(self, old, *args):
+        event = NSApplication.sharedApplication().currentEvent()
+        if event and event.modifierFlags() & NSAlternateKeyMask:
+            return old(self, *args)
         return self._messageViewer().forwardAsAttachment_(*args)
 
 
 class MessageViewer(objc.Category(objc.runtime.MessageViewer)):
     @swizzle(objc.runtime.MessageViewer, 'forwardMessage:')
     def forwardMessage_(self, old, *args):
+        event = NSApplication.sharedApplication().currentEvent()
+        if event and event.modifierFlags() & NSAlternateKeyMask:
+            return old(self, *args)
         return self.forwardAsAttachment_(*args)
 
 
 class SingleMessageViewer(objc.Category(objc.runtime.SingleMessageViewer)):
     @swizzle(objc.runtime.SingleMessageViewer, 'forwardMessage:')
     def forwardMessage_(self, old, *args):
+        event = NSApplication.sharedApplication().currentEvent()
+        if event and event.modifierFlags() & NSAlternateKeyMask:
+            return old(self, *args)
         return self.forwardAsAttachment_(*args)
 
 

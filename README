@@ -86,8 +86,8 @@ composing a plain text message.
 
 Flowed format is not appropriate for some messages, such as those containing
 inline patches. To disable the use of flowed text for an individual message,
-hold down the Option key whilst clicking on the Send button in the toolbar,
-or while selecting Send from the Message menu. MailFlow will still prevent
+hold down the Option key when clicking on the Send button in the toolbar, or
+when selecting Send from the Message menu. MailFlow will still restrict
 unnecessary use of quoted-printable even when format=flowed is disabled.
 
 By default, Mail uses a quoted-printable transfer encoding for text/plain
@@ -116,6 +116,10 @@ attachments instead of quoting them inline. Mail has always supported MIME
 forward but relegated it to the Message menu without a shortcut or toolbar
 button, instead encouraging ugly inline forward. MailFlow reconfigures the
 standard forward buttons, keyboard shortcut and menu item to use MIME.
+
+To override this and forward a message inline, hold down the Option key when
+clicking on the Forward button in the toolbar or when selecting Forward from
+the Message menu.
 
 
 pbmbox
