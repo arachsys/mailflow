@@ -139,6 +139,15 @@ class MCMessageGenerator(objc.Category(objc.runtime.MCMessageGenerator)):
         return result
 
 
+class MCMimePart(objc.Category(objc.runtime.MCMimePart)):
+    @swizzle(objc.runtime.MCMimePart, 'decodeTextPlainWithContext:')
+    def decodeTextPlainWithContext_(self, old, *args):
+        result = old(self, *args)
+        if result.startswith(u' '):
+            result = u'&nbsp;' + result[1:]
+        return result.replace(u'<BR> ', u'<BR>&nbsp;')
+
+
 class MessageViewController(objc.Category(objc.runtime.MessageViewController)):
     @swizzle(objc.runtime.MessageViewController, 'forward:')
     def forward_(self, old, *args):

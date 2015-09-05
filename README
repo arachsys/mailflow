@@ -4,7 +4,8 @@ MailFlow
 MailFlow is a plugin for Apple Mail on OS X 10.10 and later, fixing it to
 emit RFC2646 format=flowed plain text messages and taming its enthusiasm for
 quoted-printable transfer encoding. Quoting and attribution when replying is
-also improved.
+also improved, and a long-standing bug in the display of plain text messages
+is fixed.
 
 Mail was once quite a good 'net citizen. It could be configured to generate
 plain text email, and would do so with the text neatly wrapped at 76
@@ -107,19 +108,30 @@ becomes
 
   Chris Webb <chris@arachsys.com> wrote:
 
-Apple Mail 8.0 has a bug which causes the attribution line to be quoted as
-if it were part of the original message. MailFlow will also fix this whilst
+Mail 8.0 has a bug which causes the attribution line to be quoted as if it
+were part of the original message. MailFlow will also fix this whilst
 trimming the attribution line.
 
-Finally, MailFlow makes it easier to forward messages as proper MIME
-attachments instead of quoting them inline. Mail has always supported MIME
-forward but relegated it to the Message menu without a shortcut or toolbar
-button, instead encouraging ugly inline forward. MailFlow reconfigures the
-standard forward buttons, keyboard shortcut and menu item to use MIME.
+MailFlow makes it easier to forward messages as proper MIME attachments
+instead of quoting them inline. Mail has always supported MIME forward but
+relegated it to the Message menu without a shortcut or toolbar button,
+instead encouraging ugly inline forward. MailFlow reconfigures the standard
+forward buttons, keyboard shortcut and menu item to use MIME.
 
 To override this and forward a message inline, hold down the Option key when
 clicking on the Forward button in the toolbar or when selecting Forward from
 the Message menu.
+
+Finally, MailFlow addresses a long-standing bug in Mail, which drops one
+leading space from every indented line of a plain text message in the
+message viewer. When converting the text/plain part to HTML for display in a
+WebView, all but the first leading space is rendered as '&nbsp;' so, for
+example, a line '  foo' becomes '<BR> &nbsp;foo'. However, WebKit will then
+display this as ' foo' not '  foo'.
+
+To work around this bug, MailFlow translates a space following a '<BR>' (or
+at the start of the message) into '&nbsp;' before a plain text part is
+rendered in a WebView.
 
 
 pbmbox
