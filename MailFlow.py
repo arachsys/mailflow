@@ -98,6 +98,72 @@ class DocumentEditor(objc.Category(objc.runtime.DocumentEditor)):
         return result
 
 
+class EditingMessageWebView(objc.Category(objc.runtime.EditingMessageWebView)):
+    @swizzle(objc.runtime.EditingMessageWebView, 'decreaseIndentation:')
+    def decreaseIndentation_(self, original, sender, indent = 2):
+        if self.contentElement().className() != 'ApplePlainTextBody':
+            return original(self, sender)
+
+        self.undoManager().beginUndoGrouping()
+        affinity = self.selectionAffinity()
+        selection = self.selectedDOMRange()
+
+        self.moveToBeginningOfParagraph_(None)
+        if selection.collapsed():
+            self.moveToEndOfParagraphAndModifySelection_(None)
+            text = self.selectedDOMRange().stringValue() or ''
+            if text and not text.strip():
+                self.deleteBackward_(None)
+            elif text[:indent].isspace():
+                self.moveToBeginningOfParagraph_(None)
+                for _ in xrange(indent):
+                    self.deleteForward_(None)
+        else:
+            while selection.compareBoundaryPoints__(1, # START_TO_END
+                    self.selectedDOMRange()) > 0:
+                self.moveToEndOfParagraphAndModifySelection_(None)
+                text = self.selectedDOMRange().stringValue() or ''
+                if text and not text.strip():
+                    self.deleteBackward_(None)
+                elif text[:indent].isspace():
+                    self.moveToBeginningOfParagraph_(None)
+                    for _ in xrange(indent):
+                        self.deleteForward_(None)
+                self.moveToEndOfParagraph_(None)
+                self.moveForward_(None)
+
+        self.setSelectedDOMRange_affinity_(selection, affinity)
+        self.undoManager().endUndoGrouping()
+
+    @swizzle(objc.runtime.EditingMessageWebView, 'increaseIndentation:')
+    def increaseIndentation_(self, original, sender, indent = 2):
+        if self.contentElement().className() != 'ApplePlainTextBody':
+            return original(self, sender)
+
+        self.undoManager().beginUndoGrouping()
+        affinity = self.selectionAffinity()
+        selection = self.selectedDOMRange()
+
+        self.moveToBeginningOfParagraph_(None)
+        if selection.collapsed():
+            self.insertText_(indent * u' ')
+        else:
+            while selection.compareBoundaryPoints__(1, # START_TO_END
+                    self.selectedDOMRange()) > 0:
+                self.insertText_(indent * u' ')
+                self.moveToBeginningOfParagraph_(None)
+                self.moveToEndOfParagraphAndModifySelection_(None)
+                text = self.selectedDOMRange().stringValue() or ''
+                if text.strip():
+                    self.moveForward_(None)
+                else:
+                    self.deleteBackward_(None)
+                self.moveForward_(None)
+
+        self.setSelectedDOMRange_affinity_(selection, affinity)
+        self.undoManager().endUndoGrouping()
+
+
 class MCMessageGenerator(objc.Category(objc.runtime.MCMessageGenerator)):
     @swizzle(objc.runtime.MCMessageGenerator, 'allows8BitMimeParts')
     def allows8BitMimeParts(self, old):

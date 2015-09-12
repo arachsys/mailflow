@@ -85,6 +85,11 @@ to reflow them. This provides a convenient way to include non-reflowable
 content such as quotes, code samples, aligned columns or ASCII art whilst
 composing a plain text message.
 
+For convenience when indenting text blocks, the built-in Increase/Decrease
+Indentation operations are extended to work on plain text messages. These
+will insert or remove two spaces at the start of the current line or all
+lines overlapping the current selection.
+
 Flowed format is not appropriate for some messages, such as those containing
 inline patches. To disable the use of flowed text for an individual message,
 hold down the Option key when clicking on the Send button in the toolbar, or
