@@ -133,25 +133,21 @@ class EditingMessageWebView(objc.Category(objc.runtime.EditingMessageWebView)):
 
         self.moveToBeginningOfParagraph_(None)
         if selection.collapsed():
-            self.moveToEndOfParagraphAndModifySelection_(None)
+            for _ in xrange(indent):
+                self.moveForwardAndModifySelection_(None)
             text = self.selectedDOMRange().stringValue() or ''
-            if text and not text.strip():
+            if re.match(u'[ \xa0]{%d}' % indent, text, re.UNICODE):
                 self.deleteBackward_(None)
-            elif text[:indent].isspace():
-                self.moveToBeginningOfParagraph_(None)
-                for _ in xrange(indent):
-                    self.deleteForward_(None)
         else:
             while selection.compareBoundaryPoints__(1, # START_TO_END
                     self.selectedDOMRange()) > 0:
-                self.moveToEndOfParagraphAndModifySelection_(None)
+                for _ in xrange(indent):
+                    self.moveForwardAndModifySelection_(None)
                 text = self.selectedDOMRange().stringValue() or ''
-                if text and not text.strip():
+                if re.match(u'[ \xa0]{%d}' % indent, text, re.UNICODE):
                     self.deleteBackward_(None)
-                elif text[:indent].isspace():
-                    self.moveToBeginningOfParagraph_(None)
-                    for _ in xrange(indent):
-                        self.deleteForward_(None)
+                else:
+                    self.moveBackward_(None)
                 self.moveToEndOfParagraph_(None)
                 self.moveForward_(None)
 
@@ -167,23 +163,25 @@ class EditingMessageWebView(objc.Category(objc.runtime.EditingMessageWebView)):
         affinity = self.selectionAffinity()
         selection = self.selectedDOMRange()
 
-        self.moveToBeginningOfParagraph_(None)
         if selection.collapsed():
+            position = self.selectedRange().location
+            self.moveToBeginningOfParagraph_(None)
+            position -= self.selectedRange().location
             self.insertText_(indent * u' ')
+            for _ in xrange(position):
+                self.moveForward_(None)
         else:
+            self.moveToBeginningOfParagraph_(None)
             while selection.compareBoundaryPoints__(1, # START_TO_END
                     self.selectedDOMRange()) > 0:
-                self.insertText_(indent * u' ')
-                self.moveToBeginningOfParagraph_(None)
                 self.moveToEndOfParagraphAndModifySelection_(None)
-                text = self.selectedDOMRange().stringValue() or ''
-                if text.strip():
-                    self.moveForward_(None)
-                else:
-                    self.deleteBackward_(None)
+                if not self.selectedDOMRange().collapsed():
+                    self.moveToBeginningOfParagraph_(None)
+                    self.insertText_(indent * u' ')
+                    self.moveToEndOfParagraph_(None)
                 self.moveForward_(None)
+            self.setSelectedDOMRange_affinity_(selection, affinity)
 
-        self.setSelectedDOMRange_affinity_(selection, affinity)
         self.undoManager().endUndoGrouping()
 
 
