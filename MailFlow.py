@@ -48,20 +48,22 @@ def swizzle(cls, selector):
     return decorator
 
 
-class DocumentEditor(objc.Category(objc.runtime.DocumentEditor)):
-    @swizzle(objc.runtime.DocumentEditor, 'finishLoadingEditor')
+class ComposeViewController(objc.Category(objc.runtime.ComposeViewController)):
+    @swizzle(objc.runtime.ComposeViewController, 'finishLoadingEditor')
     def finishLoadingEditor(self, old):
         result = old(self)
-        if self.messageType() in [1, 2, 3]:
-            view = self.webView()
-            document = view.mainFrame().DOMDocument()
+        if self.messageType() not in [1, 2, 3]:
+            return result
 
-            view.contentElement().removeStrayLinefeeds()
-            blockquotes = document.getElementsByTagName_('BLOCKQUOTE')
-            for index in xrange(blockquotes.length()):
-                if blockquotes.item_(index):
-                    blockquotes.item_(index).removeStrayLinefeeds()
+        view = self.composeWebView()
+        document = view.mainFrame().DOMDocument()
+        view.contentElement().removeStrayLinefeeds()
+        blockquotes = document.getElementsByTagName_('BLOCKQUOTE')
+        for index in xrange(blockquotes.length()):
+            if blockquotes.item_(index):
+                blockquotes.item_(index).removeStrayLinefeeds()
 
+        if self.messageType() in [1, 2]:
             view.moveToBeginningOfDocument_(None)
             view.moveToEndOfParagraphAndModifySelection_(None)
             view.moveForwardAndModifySelection_(None)
@@ -71,10 +73,7 @@ class DocumentEditor(objc.Category(objc.runtime.DocumentEditor)):
             view.changeQuoteLevel_(item)
 
             attribution = view.selectedDOMRange().stringValue()
-            if self.messageType() == 3:
-                attribution = u'Forwarded message:\n'
-            else:
-                attribution = attribution.rsplit(u',', 1)[-1].lstrip()
+            attribution = attribution.rsplit(u',', 1)[-1].lstrip()
             if view.isAutomaticTextReplacementEnabled():
                 view.setAutomaticTextReplacementEnabled_(False)
                 view.insertText_(attribution)
@@ -92,9 +91,33 @@ class DocumentEditor(objc.Category(objc.runtime.DocumentEditor)):
                 view.moveToEndOfDocument_(None)
                 view.insertParagraphSeparator_(None)
 
-            view.insertParagraphSeparator_(None)
-            view.undoManager().removeAllActions()
-            self.backEnd().setHasChanges_(False)
+        if self.messageType() == 3:
+            for index in xrange(blockquotes.length()):
+                blockquote = blockquotes.item_(index)
+                if blockquote.quoteLevel() == 1:
+                    blockquote.parentNode().insertBefore__(
+                        document.createElement_('BR'), blockquote)
+
+        view.insertParagraphSeparator_(None)
+        view.undoManager().removeAllActions()
+        self.setHasUserMadeChanges_(False)
+        self.backEnd().setHasChanges_(False)
+        return result
+
+    @swizzle(objc.runtime.ComposeViewController, 'show')
+    def show(self, old):
+        result = old(self)
+        if self.messageType() in [1, 2]:
+            view = self.composeWebView()
+            document = view.mainFrame().DOMDocument()
+            signature = document.getElementById_('AppleMailSignature')
+            if signature:
+                range = document.createRange()
+                range.selectNode_(signature)
+                view.setSelectedDOMRange_affinity_(range, 0)
+                view.moveUp_(None)
+            else:
+                view.moveToEndOfDocument_(None)
         return result
 
 
@@ -162,6 +185,12 @@ class EditingMessageWebView(objc.Category(objc.runtime.EditingMessageWebView)):
 
         self.setSelectedDOMRange_affinity_(selection, affinity)
         self.undoManager().endUndoGrouping()
+
+
+class MCMessage(objc.Category(objc.runtime.MCMessage)):
+    @swizzle(objc.runtime.MCMessage, 'forwardedMessagePrefixWithSpacer:')
+    def forwardedMessagePrefixWithSpacer_(self, old, *args):
+        return u''
 
 
 class MCMessageGenerator(objc.Category(objc.runtime.MCMessageGenerator)):
