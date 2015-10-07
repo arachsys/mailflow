@@ -52,7 +52,7 @@ class ComposeViewController(objc.Category(objc.runtime.ComposeViewController)):
     @swizzle(objc.runtime.ComposeViewController, 'finishLoadingEditor')
     def finishLoadingEditor(self, old):
         result = old(self)
-        if self.messageType() not in [1, 2, 3]:
+        if self.messageType() not in [1, 2, 3, 8]:
             return result
 
         view = self.composeWebView()
@@ -63,7 +63,7 @@ class ComposeViewController(objc.Category(objc.runtime.ComposeViewController)):
             if blockquotes.item_(index):
                 blockquotes.item_(index).removeStrayLinefeeds()
 
-        if self.messageType() in [1, 2]:
+        if self.messageType() in [1, 2, 8]:
             view.moveToBeginningOfDocument_(None)
             view.moveToEndOfParagraphAndModifySelection_(None)
             view.moveForwardAndModifySelection_(None)
@@ -107,7 +107,7 @@ class ComposeViewController(objc.Category(objc.runtime.ComposeViewController)):
     @swizzle(objc.runtime.ComposeViewController, 'show')
     def show(self, old):
         result = old(self)
-        if self.messageType() in [1, 2]:
+        if self.messageType() in [1, 2, 8]:
             view = self.composeWebView()
             document = view.mainFrame().DOMDocument()
             signature = document.getElementById_('AppleMailSignature')
