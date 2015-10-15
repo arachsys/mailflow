@@ -2,6 +2,12 @@ from AppKit import NSAlternateKeyMask, NSApplication, NSMenuItem
 import objc
 import re
 
+def Category(classname):
+    return objc.Category(objc.lookUpClass(classname))
+
+def Class(classname):
+    return objc.lookUpClass(classname)
+
 def flow(text, width = 77):
     quote, indent = re.match(r'(>+ ?|)(\s*)', text, re.UNICODE).groups()
     prefix = len(quote)
@@ -33,8 +39,9 @@ def flow(text, width = 77):
             text, cursor = quote + text[cursor:], cursor - prefix
         breaks = [offset - cursor for offset in breaks[index + 1:]]
 
-def swizzle(cls, selector):
+def swizzle(classname, selector):
     def decorator(function):
+        cls = objc.lookUpClass(classname)
         old = cls.instanceMethodForSelector_(selector)
         if old.isClassMethod:
             old = cls.methodForSelector_(selector)
@@ -48,8 +55,8 @@ def swizzle(cls, selector):
     return decorator
 
 
-class ComposeViewController(objc.Category(objc.runtime.ComposeViewController)):
-    @swizzle(objc.runtime.ComposeViewController, 'finishLoadingEditor')
+class ComposeViewController(Category('ComposeViewController')):
+    @swizzle('ComposeViewController', 'finishLoadingEditor')
     def finishLoadingEditor(self, old):
         result = old(self)
         if self.messageType() not in [1, 2, 3, 8]:
@@ -104,7 +111,7 @@ class ComposeViewController(objc.Category(objc.runtime.ComposeViewController)):
         self.backEnd().setHasChanges_(False)
         return result
 
-    @swizzle(objc.runtime.ComposeViewController, 'show')
+    @swizzle('ComposeViewController', 'show')
     def show(self, old):
         result = old(self)
         if self.messageType() in [1, 2, 8]:
@@ -121,8 +128,8 @@ class ComposeViewController(objc.Category(objc.runtime.ComposeViewController)):
         return result
 
 
-class EditingMessageWebView(objc.Category(objc.runtime.EditingMessageWebView)):
-    @swizzle(objc.runtime.EditingMessageWebView, 'decreaseIndentation:')
+class EditingMessageWebView(Category('EditingMessageWebView')):
+    @swizzle('EditingMessageWebView', 'decreaseIndentation:')
     def decreaseIndentation_(self, original, sender, indent = 2):
         if self.contentElement().className() != 'ApplePlainTextBody':
             return original(self, sender)
@@ -154,7 +161,7 @@ class EditingMessageWebView(objc.Category(objc.runtime.EditingMessageWebView)):
         self.setSelectedDOMRange_affinity_(selection, affinity)
         self.undoManager().endUndoGrouping()
 
-    @swizzle(objc.runtime.EditingMessageWebView, 'increaseIndentation:')
+    @swizzle('EditingMessageWebView', 'increaseIndentation:')
     def increaseIndentation_(self, original, sender, indent = 2):
         if self.contentElement().className() != 'ApplePlainTextBody':
             return original(self, sender)
@@ -185,19 +192,18 @@ class EditingMessageWebView(objc.Category(objc.runtime.EditingMessageWebView)):
         self.undoManager().endUndoGrouping()
 
 
-class MCMessage(objc.Category(objc.runtime.MCMessage)):
-    @swizzle(objc.runtime.MCMessage, 'forwardedMessagePrefixWithSpacer:')
+class MCMessage(Category('MCMessage')):
+    @swizzle('MCMessage', 'forwardedMessagePrefixWithSpacer:')
     def forwardedMessagePrefixWithSpacer_(self, old, *args):
         return u''
 
 
-class MCMessageGenerator(objc.Category(objc.runtime.MCMessageGenerator)):
-    @swizzle(objc.runtime.MCMessageGenerator, 'allows8BitMimeParts')
+class MCMessageGenerator(Category('MCMessageGenerator')):
+    @swizzle('MCMessageGenerator', 'allows8BitMimeParts')
     def allows8BitMimeParts(self, old):
         return True
 
-    @swizzle(objc.runtime.MCMessageGenerator,
-             '_encodeDataForMimePart:withPartData:')
+    @swizzle('MCMessageGenerator', '_encodeDataForMimePart:withPartData:')
     def _encodeDataForMimePart_withPartData_(self, old, part, data):
         if part.type() != 'text' or part.subtype() != 'plain':
             return old(self, part, data)
@@ -213,7 +219,7 @@ class MCMessageGenerator(objc.Category(objc.runtime.MCMessageGenerator)):
             part.setContentTransferEncoding_('8bit')
         return True
 
-    @swizzle(objc.runtime.MCMessageGenerator,
+    @swizzle('MCMessageGenerator',
              '_newPlainTextPartWithAttributedString:partData:')
     def _newPlainTextPartWithAttributedString_partData_(self, old, *args):
         event = NSApplication.sharedApplication().currentEvent()
@@ -232,8 +238,8 @@ class MCMessageGenerator(objc.Category(objc.runtime.MCMessageGenerator)):
         return result
 
 
-class MCMimePart(objc.Category(objc.runtime.MCMimePart)):
-    @swizzle(objc.runtime.MCMimePart, 'decodeTextPlainWithContext:')
+class MCMimePart(Category('MCMimePart')):
+    @swizzle('MCMimePart', 'decodeTextPlainWithContext:')
     def decodeTextPlainWithContext_(self, old, *args):
         result = old(self, *args)
         if result.startswith(u' '):
@@ -241,8 +247,8 @@ class MCMimePart(objc.Category(objc.runtime.MCMimePart)):
         return result.replace(u'<BR> ', u'<BR>&nbsp;')
 
 
-class MessageViewController(objc.Category(objc.runtime.MessageViewController)):
-    @swizzle(objc.runtime.MessageViewController, 'forward:')
+class MessageViewController(Category('MessageViewController')):
+    @swizzle('MessageViewController', 'forward:')
     def forward_(self, old, *args):
         event = NSApplication.sharedApplication().currentEvent()
         if event and event.modifierFlags() & NSAlternateKeyMask:
@@ -250,8 +256,8 @@ class MessageViewController(objc.Category(objc.runtime.MessageViewController)):
         return self._messageViewer().forwardAsAttachment_(*args)
 
 
-class MessageViewer(objc.Category(objc.runtime.MessageViewer)):
-    @swizzle(objc.runtime.MessageViewer, 'forwardMessage:')
+class MessageViewer(Category('MessageViewer')):
+    @swizzle('MessageViewer', 'forwardMessage:')
     def forwardMessage_(self, old, *args):
         event = NSApplication.sharedApplication().currentEvent()
         if event and event.modifierFlags() & NSAlternateKeyMask:
@@ -259,8 +265,8 @@ class MessageViewer(objc.Category(objc.runtime.MessageViewer)):
         return self.forwardAsAttachment_(*args)
 
 
-class SingleMessageViewer(objc.Category(objc.runtime.SingleMessageViewer)):
-    @swizzle(objc.runtime.SingleMessageViewer, 'forwardMessage:')
+class SingleMessageViewer(Category('SingleMessageViewer')):
+    @swizzle('SingleMessageViewer', 'forwardMessage:')
     def forwardMessage_(self, old, *args):
         event = NSApplication.sharedApplication().currentEvent()
         if event and event.modifierFlags() & NSAlternateKeyMask:
@@ -268,7 +274,7 @@ class SingleMessageViewer(objc.Category(objc.runtime.SingleMessageViewer)):
         return self.forwardAsAttachment_(*args)
 
 
-class MailFlow(objc.runtime.MVMailBundle):
+class MailFlow(Class('MVMailBundle')):
     @classmethod
     def initialize(self):
         self.registerBundle()
