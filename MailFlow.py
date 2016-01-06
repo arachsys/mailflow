@@ -229,7 +229,7 @@ class MCMessageGenerator(Category('MCMessageGenerator')):
 
         charset = result.bodyParameterForKey_('charset') or 'utf-8'
         data = args[1].objectForKey_(result)
-        lines = bytes(data).decode(charset).splitlines()
+        lines = bytes(data).decode(charset).split('\n')
         lines = [line for text in lines for line in flow(text)]
         data.setData_(buffer(u'\n'.join(lines).encode(charset)))
 
