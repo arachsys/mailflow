@@ -199,10 +199,6 @@ class MCMessage(Category('MCMessage')):
 
 
 class MCMessageGenerator(Category('MCMessageGenerator')):
-    @swizzle('MCMessageGenerator', 'allows8BitMimeParts')
-    def allows8BitMimeParts(self, old):
-        return True
-
     @swizzle('MCMessageGenerator', '_encodeDataForMimePart:withPartData:')
     def _encodeDataForMimePart_withPartData_(self, old, part, data):
         if part.type() != 'text' or part.subtype() != 'plain':
