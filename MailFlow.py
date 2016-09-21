@@ -56,8 +56,8 @@ def swizzle(classname, selector):
 
 
 class ComposeViewController(Category('ComposeViewController')):
-    @swizzle('ComposeViewController', 'finishLoadingEditor')
-    def finishLoadingEditor(self, old):
+    @swizzle('ComposeViewController', '_finishLoadingEditor')
+    def _finishLoadingEditor(self, old):
         result = old(self)
         if self.messageType() not in [1, 2, 3, 8]:
             return result
@@ -235,9 +235,9 @@ class MCMessageGenerator(Category('MCMessageGenerator')):
 
 
 class MCMimePart(Category('MCMimePart')):
-    @swizzle('MCMimePart', 'decodeTextPlainWithContext:')
-    def decodeTextPlainWithContext_(self, old, *args):
-        result = old(self, *args)
+    @swizzle('MCMimePart', '_decodeTextPlain')
+    def _decodeTextPlain(self, old):
+        result = old(self)
         if result.startswith(u' '):
             result = u'&nbsp;' + result[1:]
         return result.replace(u'<BR> ', u'<BR>&nbsp;')

@@ -7,8 +7,8 @@ install_path = os.environ["HOME"] + '/Library/Mail/Bundles'
 mail_path = '/Applications/Mail.app/Contents/Info'
 
 command = 'defaults read %s CFBundleShortVersionString' % mail_path
-if tuple(map(int, os.popen(command).read().strip().split('.'))) < (9, 0):
-    sys.stderr.write("MailFlow requires Apple Mail 9.0 or later\n")
+if tuple(map(int, os.popen(command).read().strip().split('.'))) < (10, 0):
+    sys.stderr.write("MailFlow requires Apple Mail 10.0 or later\n")
     sys.exit(1)
 
 command = 'defaults read %s PluginCompatibilityUUID' % mail_path
@@ -21,18 +21,21 @@ if os.path.dirname(__file__):
 setup(
     name = 'MailFlow',
     plugin = ['MailFlow.py'],
-    options = dict(py2app = dict(
-        dist_dir = install_path,
-        extension = '.mailbundle',
-        plist = dict(
-            CFBundleIdentifier = 'uk.me.cdw.MailFlow',
-            CFBundleVersion = '1.0',
-            NSHumanReadableCopyright = \
-                'Copyright (C) 2015 Chris Webb <chris@arachsys.com>',
-            SupportedPluginCompatibilityUUIDs = compatibility_uuids
-        ),
-        semi_standalone = True,
-    )),
+    options = {
+        'py2app': {
+            'dist_dir': install_path,
+            'extension': '.mailbundle',
+            'plist': {
+                'CFBundleIdentifier': 'uk.me.cdw.MailFlow',
+                'CFBundleVersion': '1.0',
+                'NSHumanReadableCopyright':
+                    'Copyright (C) 2016 Chris Webb <chris@arachsys.com>',
+                'Supported10.12PluginCompatibilityUUIDs':
+                    compatibility_uuids
+            },
+            'semi_standalone': True
+        }
+    },
     setup_requires = ['py2app']
 )
 sys.stdout.close()

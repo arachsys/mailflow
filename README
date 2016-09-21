@@ -1,7 +1,7 @@
 MailFlow
 ========
 
-MailFlow is a plugin for Apple Mail on OS X 10.11 and later, fixing it to
+MailFlow is a plugin for Apple Mail on OS X 10.12 and later, fixing it to
 emit RFC2646 format=flowed plain text messages and taming its enthusiasm for
 quoted-printable transfer encoding. Quoting and attribution when replying is
 also improved, and a long-standing bug in the display of plain text messages
@@ -33,14 +33,15 @@ undocumented one, and MailFlow hooks into this to improve the situation.
 Installation
 ------------
 
-MailFlow is currently compatible with Apple Mail 9.0 and later. To install,
+MailFlow is currently compatible with Apple Mail 10.0 and later. To install,
 unpack the source tar.gz file, change to the unpacked directory and run
 
   /usr/bin/python install.py
 
 However, Apple carelessly broke their bundled py2app when implementing the
-System Integrity Protection feature in OS X 10.11 'El Capitan'. Until this
-is fixed, you first need to disable SIP by booting into recovery mode and
+System Integrity Protection feature in OS X 10.11 'El Capitan'. It is still
+broken in macOS 10.12 'Sierra' despite numerous bug reports. Until this is
+fixed, you first need to disable SIP by booting into recovery mode and
 running 'csrutil disable', then boot back into OS X and remove the
 'restricted' flag from the system Python install with
 
@@ -141,8 +142,8 @@ To override this and forward a message inline, hold down the Option key when
 clicking on the Forward button in the toolbar or when selecting Forward from
 the Message menu.
 
-Finally, MailFlow addresses a long-standing bug in Mail, which drops one
-leading space from every indented line of a plain text message in the
+Finally, MailFlow addresses a very long-standing bug in Mail, which drops
+one leading space from every indented line of a plain text message in the
 message viewer. When converting the text/plain part to HTML for display in a
 WebView, all but the first leading space is rendered as '&nbsp;' so, for
 example, a line '  foo' becomes '<BR> &nbsp;foo'. However, WebKit will then
