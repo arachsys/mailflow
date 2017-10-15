@@ -235,8 +235,8 @@ class MCMessageGenerator(Category('MCMessageGenerator')):
 
 
 class MCMimePart(Category('MCMimePart')):
-    @swizzle('MCMimePart', '_decodeTextPlain')
-    def _decodeTextPlain(self, old):
+    @swizzle('MCMimePart', '_decodeText')
+    def _decodeText(self, old):
         result = old(self)
         if result.startswith(u' '):
             result = u'&nbsp;' + result[1:]
