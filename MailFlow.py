@@ -80,7 +80,7 @@ class ComposeViewController(Category('ComposeViewController')):
             view.changeQuoteLevel_(item)
 
             attribution = view.selectedDOMRange().stringValue()
-            attribution = attribution.rsplit(u',', 1)[-1].lstrip()
+            attribution = attribution.split(u',', 2)[-1].lstrip()
             if view.isAutomaticTextReplacementEnabled():
                 view.setAutomaticTextReplacementEnabled_(False)
                 view.insertText_(attribution)
