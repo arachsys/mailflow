@@ -1,7 +1,7 @@
 MailFlow
 ========
 
-MailFlow is a plugin for Apple Mail on OS X 10.12 and later, fixing it to
+MailFlow is a plugin for Apple Mail on macOS 10.12 and later, fixing it to
 emit RFC2646 format=flowed plain text messages and taming its enthusiasm for
 quoted-printable transfer encoding. Quoting and attribution when replying is
 also improved, and a long-standing bug in the display of plain text messages
@@ -49,6 +49,10 @@ then disable plugins, moving them from 'Bundles/' to 'Bundles (Disabled)/'.
 The user is notified when this happens, and it is sufficient to simply run
 the install.py script again. The old disabled bundle will be cleared away,
 and a new one built and installed to match the new version of Mail.
+
+On macOS 10.14 and later, the plugin must be explicitly enabled in Mail
+Preferences. Choose 'Manage Plug-ins...' from the General tab, tick
+MailFlow.mailbundle, then choose 'Apply and Restart Mail'.
 
 
 Features
