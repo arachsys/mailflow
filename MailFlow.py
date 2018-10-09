@@ -220,6 +220,8 @@ class MCMessageGenerator(Category('MCMessageGenerator')):
     def _newPlainTextPartWithAttributedString_partData_(self, old, *args):
         event = NSApplication.sharedApplication().currentEvent()
         result = old(self, *args)
+        if not result:
+            return result
         if event and event.modifierFlags() & NSAlternateKeyMask:
             return result
 
