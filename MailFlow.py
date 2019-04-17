@@ -80,7 +80,7 @@ class ComposeViewController(Category('ComposeViewController')):
             view.changeQuoteLevel_(item)
 
             defaults = NSUserDefaults.standardUserDefaults()
-            defaults = defaults.dictionaryForKey_('MailWrap') or {}
+            defaults = defaults.dictionaryForKey_('MailFlow') or {}
             if defaults.get('FixAttribution', True):
                 attribution = view.selectedDOMRange().stringValue()
                 attribution = attribution.split(u',', 2)[-1].lstrip()
