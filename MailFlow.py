@@ -1,4 +1,4 @@
-from AppKit import NSAlternateKeyMask, NSApplication, NSMenuItem
+from AppKit import NSAlternateKeyMask, NSApplication, NSMenuItem, NSUserDefaults
 import objc
 import re
 
@@ -79,14 +79,17 @@ class ComposeViewController(Category('ComposeViewController')):
             item.setTag_(-1)
             view.changeQuoteLevel_(item)
 
-            attribution = view.selectedDOMRange().stringValue()
-            attribution = attribution.split(u',', 2)[-1].lstrip()
-            if view.isAutomaticTextReplacementEnabled():
-                view.setAutomaticTextReplacementEnabled_(False)
-                view.insertText_(attribution)
-                view.setAutomaticTextReplacementEnabled_(True)
-            else:
-                view.insertText_(attribution)
+            defaults = NSUserDefaults.standardUserDefaults()
+            defaults = defaults.dictionaryForKey_('MailWrap') or {}
+            if defaults.get('FixAttribution', True):
+                attribution = view.selectedDOMRange().stringValue()
+                attribution = attribution.split(u',', 2)[-1].lstrip()
+                if view.isAutomaticTextReplacementEnabled():
+                    view.setAutomaticTextReplacementEnabled_(False)
+                    view.insertText_(attribution)
+                    view.setAutomaticTextReplacementEnabled_(True)
+                else:
+                    view.insertText_(attribution)
 
             signature = document.getElementById_('AppleMailSignature')
             if signature:
