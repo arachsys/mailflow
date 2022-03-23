@@ -34,9 +34,12 @@ Installation
 ------------
 
 MailFlow is currently compatible with Apple Mail 10.0 and later. To install,
-unpack the source tar.gz file, change to the unpacked directory and run
+clone the git repository or unpack the source tar.gz file, change to the
+source directory and run 'python install.py' or 'python3 install.py'.
 
-  /usr/bin/python install.py
+The installer and plugin work with both the system Python 2.7 and more
+recent Python 3.x, but py2app and pyobjc are required. The installer will
+prompt you to install these with pip/pip3 if they can't be found.
 
 Plugin bundles contain a list of UUIDs identifying versions of Mail with
 which they are compatible. The install.py script extracts the correct UUID
@@ -44,15 +47,33 @@ from the installed version of Mail, generates a MailFlow.bundle to match,
 and installs it in ~/Library/Mail/Bundles/. You will need to quit and
 relaunch Mail for the plugin to be registered.
 
+On macOS 10.14 and later, the plugin must be explicitly enabled in Mail
+Preferences. Choose 'Manage Plug-ins...' from the General tab, tick
+MailFlow.mailbundle, then choose 'Apply and Restart Mail'.
+
+On macOS 11.0 and later, the plugin also needs to be ad-hoc signed and
+authorised before it will work. To do this, run
+
+  codesign -f -s - ~/Library/Mail/Bundles/MailFlow.mailbundle
+  spctl --add --label MailFlow ~/Library/Mail/Bundles/MailFlow.mailbundle
+  spctl --enable --label MailFlow
+
+after running the install.py script. Many thanks to A. Wilcox (awilfox) for
+providing these signing instructions on their Cat Fox Life blog.
+
+If you use the system Python 2.7 on macOS 11.0 or later, you will also need
+to set SYSTEM_VERSION_COMPAT=0 in the environment when running install.py:
+
+  SYSTEM_VERSION_COMPAT=0 /usr/bin/python install.py
+
+Without this, a horrible Apple hack will cause the installer to detect the
+OS version incorrectly as 10.16. It aborts with a warning if that happens.
+
 Sometimes when Mail is updated, its compatibility UUID changes. Mail will
 then disable plugins, moving them from 'Bundles/' to 'Bundles (Disabled)/'.
 The user is notified when this happens, and it is sufficient to simply run
 the install.py script again. The old disabled bundle will be cleared away,
 and a new one built and installed to match the new version of Mail.
-
-On macOS 10.14 and later, the plugin must be explicitly enabled in Mail
-Preferences. Choose 'Manage Plug-ins...' from the General tab, tick
-MailFlow.mailbundle, then choose 'Apply and Restart Mail'.
 
 
 Features

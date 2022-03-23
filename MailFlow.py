@@ -42,9 +42,12 @@ def flow(text, width = 77):
 def swizzle(classname, selector):
     def decorator(function):
         cls = objc.lookUpClass(classname)
-        old = cls.instanceMethodForSelector_(selector)
-        if old.isClassMethod:
-            old = cls.methodForSelector_(selector)
+        try:
+            old = cls.instanceMethodForSelector_(selector)
+            if old.isClassMethod:
+                old = cls.methodForSelector_(selector)
+        except:
+            return None
         def wrapper(self, *args, **kwargs):
             return function(self, old, *args, **kwargs)
         new = objc.selector(wrapper, selector = old.selector,
@@ -56,7 +59,7 @@ def swizzle(classname, selector):
 
 
 class ComposeViewController(Category('ComposeViewController')):
-    @swizzle('ComposeViewController', '_finishLoadingEditor')
+    @swizzle('ComposeViewController', b'_finishLoadingEditor')
     def _finishLoadingEditor(self, old):
         result = old(self)
         if self.messageType() not in [1, 2, 3, 8]:
@@ -66,7 +69,7 @@ class ComposeViewController(Category('ComposeViewController')):
         document = view.mainFrame().DOMDocument()
         view.contentElement().removeStrayLinefeeds()
         blockquotes = document.getElementsByTagName_('BLOCKQUOTE')
-        for index in xrange(blockquotes.length()):
+        for index in range(blockquotes.length()):
             if blockquotes.item_(index):
                 blockquotes.item_(index).removeStrayLinefeeds()
 
@@ -90,16 +93,16 @@ class ComposeViewController(Category('ComposeViewController')):
 
             signature = document.getElementById_('AppleMailSignature')
             if signature:
-                range = document.createRange()
-                range.selectNode_(signature)
-                view.setSelectedDOMRange_affinity_(range, 0)
+                domrange = document.createRange()
+                domrange.selectNode_(signature)
+                view.setSelectedDOMRange_affinity_(domrange, 0)
                 view.moveUp_(None)
             else:
                 view.moveToEndOfDocument_(None)
                 view.insertParagraphSeparator_(None)
 
         if self.messageType() == 3:
-            for index in xrange(blockquotes.length()):
+            for index in range(blockquotes.length()):
                 blockquote = blockquotes.item_(index)
                 if blockquote.quoteLevel() == 1:
                     blockquote.parentNode().insertBefore__(
@@ -111,7 +114,7 @@ class ComposeViewController(Category('ComposeViewController')):
         self.backEnd().setHasChanges_(False)
         return result
 
-    @swizzle('ComposeViewController', 'show')
+    @swizzle('ComposeViewController', b'show')
     def show(self, old):
         result = old(self)
         if self.messageType() in [1, 2, 8]:
@@ -119,9 +122,9 @@ class ComposeViewController(Category('ComposeViewController')):
             document = view.mainFrame().DOMDocument()
             signature = document.getElementById_('AppleMailSignature')
             if signature:
-                range = document.createRange()
-                range.selectNode_(signature)
-                view.setSelectedDOMRange_affinity_(range, 0)
+                domrange = document.createRange()
+                domrange.selectNode_(signature)
+                view.setSelectedDOMRange_affinity_(domrange, 0)
                 view.moveUp_(None)
             else:
                 view.moveToEndOfDocument_(None)
@@ -129,7 +132,7 @@ class ComposeViewController(Category('ComposeViewController')):
 
 
 class EditingMessageWebView(Category('EditingMessageWebView')):
-    @swizzle('EditingMessageWebView', 'decreaseIndentation:')
+    @swizzle('EditingMessageWebView', b'decreaseIndentation:')
     def decreaseIndentation_(self, original, sender, indent = 2):
         if self.contentElement().className() != 'ApplePlainTextBody':
             return original(self, sender)
@@ -140,7 +143,7 @@ class EditingMessageWebView(Category('EditingMessageWebView')):
 
         self.moveToBeginningOfParagraph_(None)
         if selection.collapsed():
-            for _ in xrange(indent):
+            for _ in range(indent):
                 self.moveForwardAndModifySelection_(None)
             text = self.selectedDOMRange().stringValue() or ''
             if re.match(u'[ \xa0]{%d}' % indent, text, re.UNICODE):
@@ -148,7 +151,7 @@ class EditingMessageWebView(Category('EditingMessageWebView')):
         else:
             while selection.compareBoundaryPoints__(1, # START_TO_END
                     self.selectedDOMRange()) > 0:
-                for _ in xrange(indent):
+                for _ in range(indent):
                     self.moveForwardAndModifySelection_(None)
                 text = self.selectedDOMRange().stringValue() or ''
                 if re.match(u'[ \xa0]{%d}' % indent, text, re.UNICODE):
@@ -161,7 +164,7 @@ class EditingMessageWebView(Category('EditingMessageWebView')):
         self.setSelectedDOMRange_affinity_(selection, affinity)
         self.undoManager().endUndoGrouping()
 
-    @swizzle('EditingMessageWebView', 'increaseIndentation:')
+    @swizzle('EditingMessageWebView', b'increaseIndentation:')
     def increaseIndentation_(self, original, sender, indent = 2):
         if self.contentElement().className() != 'ApplePlainTextBody':
             return original(self, sender)
@@ -175,7 +178,7 @@ class EditingMessageWebView(Category('EditingMessageWebView')):
             self.moveToBeginningOfParagraph_(None)
             position -= self.selectedRange().location
             self.insertText_(indent * u' ')
-            for _ in xrange(position):
+            for _ in range(position):
                 self.moveForward_(None)
         else:
             self.moveToBeginningOfParagraph_(None)
@@ -193,13 +196,13 @@ class EditingMessageWebView(Category('EditingMessageWebView')):
 
 
 class MCMessage(Category('MCMessage')):
-    @swizzle('MCMessage', 'forwardedMessagePrefixWithSpacer:')
+    @swizzle('MCMessage', b'forwardedMessagePrefixWithSpacer:')
     def forwardedMessagePrefixWithSpacer_(self, old, *args):
         return u''
 
 
 class MCMessageGenerator(Category('MCMessageGenerator')):
-    @swizzle('MCMessageGenerator', '_encodeDataForMimePart:withPartData:')
+    @swizzle('MCMessageGenerator', b'_encodeDataForMimePart:withPartData:')
     def _encodeDataForMimePart_withPartData_(self, old, part, data):
         if part.type() != 'text' or part.subtype() != 'plain':
             return old(self, part, data)
@@ -216,7 +219,7 @@ class MCMessageGenerator(Category('MCMessageGenerator')):
         return True
 
     @swizzle('MCMessageGenerator',
-             '_newPlainTextPartWithAttributedString:partData:')
+             b'_newPlainTextPartWithAttributedString:partData:')
     def _newPlainTextPartWithAttributedString_partData_(self, old, *args):
         event = NSApplication.sharedApplication().currentEvent()
         result = old(self, *args)
@@ -229,7 +232,12 @@ class MCMessageGenerator(Category('MCMessageGenerator')):
         data = args[1].objectForKey_(result)
         lines = bytes(data).decode(charset).split('\n')
         lines = [line for text in lines for line in flow(text)]
-        data.setData_(buffer(u'\n'.join(lines).encode(charset)))
+
+        encoded = u'\n'.join(lines).encode(charset)
+        try:
+            data.setData_(buffer(encoded))
+        except:
+            data.setData_(encoded)
 
         result.setBodyParameter_forKey_('yes', 'delsp')
         result.setBodyParameter_forKey_('flowed', 'format')
@@ -237,7 +245,7 @@ class MCMessageGenerator(Category('MCMessageGenerator')):
 
 
 class MCMimePart(Category('MCMimePart')):
-    @swizzle('MCMimePart', '_decodeText')
+    @swizzle('MCMimePart', b'_decodeText')
     def _decodeText(self, old):
         result = old(self)
         if result.startswith(u' '):
@@ -246,7 +254,7 @@ class MCMimePart(Category('MCMimePart')):
 
 
 class MessageViewController(Category('MessageViewController')):
-    @swizzle('MessageViewController', 'forward:')
+    @swizzle('MessageViewController', b'forward:')
     def forward_(self, old, *args):
         event = NSApplication.sharedApplication().currentEvent()
         if event and event.modifierFlags() & NSAlternateKeyMask:
@@ -255,7 +263,7 @@ class MessageViewController(Category('MessageViewController')):
 
 
 class MessageViewer(Category('MessageViewer')):
-    @swizzle('MessageViewer', 'forwardMessage:')
+    @swizzle('MessageViewer', b'forwardMessage:')
     def forwardMessage_(self, old, *args):
         event = NSApplication.sharedApplication().currentEvent()
         if event and event.modifierFlags() & NSAlternateKeyMask:
@@ -264,7 +272,7 @@ class MessageViewer(Category('MessageViewer')):
 
 
 class SingleMessageViewer(Category('SingleMessageViewer')):
-    @swizzle('SingleMessageViewer', 'forwardMessage:')
+    @swizzle('SingleMessageViewer', b'forwardMessage:')
     def forwardMessage_(self, old, *args):
         event = NSApplication.sharedApplication().currentEvent()
         if event and event.modifierFlags() & NSAlternateKeyMask:
