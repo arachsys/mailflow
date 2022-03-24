@@ -225,7 +225,9 @@ class MCMessageGenerator(Category('MCMessageGenerator')):
     def _newPlainTextPartWithAttributedString_partData_(self, old, *args):
         event = NSApplication.sharedApplication().currentEvent()
         result = old(self, *args)
-        if not result:
+        width = self._flowWidth
+
+        if not result or width <= 0:
             return result
         if event and event.modifierFlags() & NSAlternateKeyMask:
             return result
@@ -233,7 +235,7 @@ class MCMessageGenerator(Category('MCMessageGenerator')):
         charset = result.bodyParameterForKey_('charset') or 'utf-8'
         data = args[1].objectForKey_(result)
         lines = bytes(data).decode(charset).split('\n')
-        lines = [line for text in lines for line in flow(text)]
+        lines = [line for text in lines for line in flow(text, width)]
 
         encoded = u'\n'.join(lines).encode(charset)
         try:
@@ -285,7 +287,13 @@ class SingleMessageViewer(Category('SingleMessageViewer')):
 class MailFlow(Class('MVMailBundle')):
     @classmethod
     def initialize(self):
+        bundle = NSBundle.bundleWithIdentifier_('uk.me.cdw.MailFlow')
         self.registerBundle()
+
         defaults = NSUserDefaults.standardUserDefaults()
         defaults = defaults.dictionaryForKey_('MailFlow') or {}
         ComposeViewController._fixAttribution = defaults.get('FixAttribution', True)
+        MCMessageGenerator._flowWidth = int(defaults.get('FlowWidth', 76))
+
+        version = bundle.objectForInfoDictionaryKey_('CFBundleVersion')
+        NSLog('Loaded MailFlow %s' % version)

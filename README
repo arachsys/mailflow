@@ -164,6 +164,23 @@ at the start of the message) into '&nbsp;' before a plain text part is
 rendered in a WebView.
 
 
+Configuration
+-------------
+
+MailFlow reads two preferences from the com.apple.mail domain. These can be
+set at the command line with the macOS defaults command:
+
+  defaults write com.apple.mail MailFlow -dict-add FixAttribution -bool false
+  defaults write com.apple.mail MailFlow -dict-add FixAttribution -bool true
+    - configure MailFlow to strip the verbose date and time information
+      from the attribution line when composing a reply. The default is on.
+
+  defaults write com.apple.mail MailFlow -dict-add FlowWidth -int NN
+    - break lines at a width of NN characters when flowing text. The
+      default is 76. Set to 0 to disable format=flowed but still restrict
+      unnecessary use of quoted-printable.
+
+
 pbmbox
 ------
 
