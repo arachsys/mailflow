@@ -1,4 +1,5 @@
-from AppKit import NSAlternateKeyMask, NSApplication, NSMenuItem
+from AppKit import NSAlternateKeyMask, NSApplication, NSBundle, NSLog, \
+  NSMenuItem, NSUserDefaults
 import objc
 import re
 
@@ -82,14 +83,15 @@ class ComposeViewController(Category('ComposeViewController')):
             item.setTag_(-1)
             view.changeQuoteLevel_(item)
 
-            attribution = view.selectedDOMRange().stringValue()
-            attribution = attribution.split(u',', 2)[-1].lstrip()
-            if view.isAutomaticTextReplacementEnabled():
-                view.setAutomaticTextReplacementEnabled_(False)
-                view.insertText_(attribution)
-                view.setAutomaticTextReplacementEnabled_(True)
-            else:
-                view.insertText_(attribution)
+            if self._fixAttribution:
+                attribution = view.selectedDOMRange().stringValue()
+                attribution = attribution.split(u',', 2)[-1].lstrip()
+                if view.isAutomaticTextReplacementEnabled():
+                    view.setAutomaticTextReplacementEnabled_(False)
+                    view.insertText_(attribution)
+                    view.setAutomaticTextReplacementEnabled_(True)
+                else:
+                    view.insertText_(attribution)
 
             signature = document.getElementById_('AppleMailSignature')
             if signature:
@@ -284,3 +286,6 @@ class MailFlow(Class('MVMailBundle')):
     @classmethod
     def initialize(self):
         self.registerBundle()
+        defaults = NSUserDefaults.standardUserDefaults()
+        defaults = defaults.dictionaryForKey_('MailFlow') or {}
+        ComposeViewController._fixAttribution = defaults.get('FixAttribution', True)
