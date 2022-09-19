@@ -67,6 +67,12 @@ the setup options in install.py. This issue doesn't affect /usr/bin/python
 or /usr/bin/python3, but has been reported with Homebrew Python running
 from /opt/homebrew/bin/python3 and /opt/homebrew/Cellar/python@3.x/.
 
+The safest bet is to use the Apple supplied Python version
+'/usr/bin/python3' (and '/usr/bin/pip3') when running the above commands.
+If it is not installed already, you will be prompted to install the
+Command Line Tools package when running it for the first time (which
+includes Python 3).
+
 If you use the system Python 2.7 on macOS 11.0 or later, you will need to
 set SYSTEM_VERSION_COMPAT=0 in the environment when running install.py:
 
@@ -81,6 +87,11 @@ The user is notified when this happens, and it is sufficient to simply run
 the install.py script again. The old disabled bundle will be cleared away,
 and a new one built and installed to match the new version of Mail.
 
+To debug any issues, Console.app can be used with a search for "mailflow".
+Press 'Start streaming' and enter "mailflow" into the search box. Issues
+related to starting the plug-in and relating to specific Python versions
+will be seen there. On success when starting Mail.app, the message
+"Loaded MailFlow 1.0" should be visible as the last entry.
 
 Features
 --------
