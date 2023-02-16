@@ -252,6 +252,8 @@ class MCMimePart(Category('MCMimePart')):
     @swizzle('MCMimePart', b'_decodeText')
     def _decodeText(self, old):
         result = old(self)
+        if result is None:
+            return result
         if result.startswith(u' '):
             result = u'&nbsp;' + result[1:]
         return result.replace(u'<BR> ', u'<BR>&nbsp;')
